@@ -84,9 +84,15 @@ revealElements.forEach((el, index) => {
 // ===== Smooth Scroll for Navigation Links =====
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
+    const href = this.getAttribute('href');
+
+    if (!href || !href.startsWith('#') || href === '#') {
+      return;
+    }
+
+    const target = document.querySelector(href);
     if (target) {
+      e.preventDefault();
       target.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
@@ -168,6 +174,76 @@ window.addEventListener('scroll', () => {
   }
 });
 
+// ===== Document Preview Modal =====
+const documentModal = document.getElementById('document-modal');
+const documentModalTitle = document.getElementById('document-modal-title');
+const documentModalFrame = document.querySelector('.document-modal-frame');
+const documentModalImage = document.querySelector('.document-modal-image');
+const documentModalOpen = document.querySelector('.document-modal-open');
+const previewableDocumentLinks = document.querySelectorAll('.cert-card[href$=".pdf"], .cert-card[href$=".jpeg"], .cert-card[href$=".jpg"], .cert-card[href$=".png"]');
+let lastFocusedDocumentLink = null;
+
+function getDocumentTitle(link) {
+  return link.dataset.documentTitle || link.querySelector('h4')?.textContent?.trim() || 'Document Preview';
+}
+
+function openDocumentModal(link) {
+  if (!documentModal) return;
+
+  const href = link.getAttribute('href');
+  const absoluteHref = new URL(href, window.location.href).href;
+  const isImage = /\.(jpeg|jpg|png|webp)$/i.test(href);
+
+  lastFocusedDocumentLink = link;
+  documentModalTitle.textContent = getDocumentTitle(link);
+  documentModalOpen.href = href;
+
+  documentModalFrame.classList.toggle('active', !isImage);
+  documentModalImage.classList.toggle('active', isImage);
+
+  if (isImage) {
+    documentModalFrame.removeAttribute('src');
+    documentModalImage.src = absoluteHref;
+  } else {
+    documentModalImage.removeAttribute('src');
+    documentModalFrame.src = absoluteHref;
+  }
+
+  documentModal.classList.add('active');
+  documentModal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  document.querySelector('.document-modal-close')?.focus();
+}
+
+function closeDocumentModal() {
+  if (!documentModal?.classList.contains('active')) return;
+
+  documentModal.classList.remove('active');
+  documentModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+  documentModalFrame.removeAttribute('src');
+  documentModalImage.removeAttribute('src');
+  documentModalFrame.classList.remove('active');
+  documentModalImage.classList.remove('active');
+  lastFocusedDocumentLink?.focus();
+}
+
+previewableDocumentLinks.forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    openDocumentModal(link);
+  });
+});
+
+document.querySelectorAll('[data-modal-close]').forEach(button => {
+  button.addEventListener('click', closeDocumentModal);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeDocumentModal();
+  }
+});
 // ===== Console Note =====
 console.log('%cHello, curious developer.', 'font-size: 22px; font-weight: bold; color: #a85f3f;');
 console.log('%cInterested in the work? Reach out via LinkedIn or email.', 'font-size: 14px; color: #5e574d;');
