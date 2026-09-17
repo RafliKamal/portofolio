@@ -81,6 +81,12 @@ revealElements.forEach((el, index) => {
   revealObserver.observe(el);
 });
 
+function setActiveNavLink(id) {
+  navLinks.forEach(link => {
+    link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+  });
+}
+
 // ===== Smooth Scroll for Navigation Links =====
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
@@ -93,6 +99,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     const target = document.querySelector(href);
     if (target) {
       e.preventDefault();
+      setActiveNavLink(target.id);
       target.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
@@ -117,25 +124,38 @@ window.addEventListener('scroll', () => {
 });
 
 // ===== Active Navigation Link =====
-const sections = document.querySelectorAll('section[id]');
+const sections = Array.from(document.querySelectorAll('section[id]'));
+let tickingNavSpy = false;
 
-const navObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const id = entry.target.getAttribute('id');
-      navLinks.forEach(link => {
-        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-      });
+function updateActiveNavLink() {
+  const activationLine = window.scrollY + 120;
+  let activeSection = sections[0];
+
+  sections.forEach(section => {
+    if (section.offsetTop <= activationLine) {
+      activeSection = section;
     }
   });
-}, {
-  threshold: 0.3,
-  rootMargin: '-80px 0px -50% 0px'
+
+  if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8) {
+    activeSection = sections[sections.length - 1];
+  }
+
+  if (activeSection) {
+    setActiveNavLink(activeSection.id);
+  }
+
+  tickingNavSpy = false;
+}
+
+window.addEventListener('scroll', () => {
+  if (!tickingNavSpy) {
+    window.requestAnimationFrame(updateActiveNavLink);
+    tickingNavSpy = true;
+  }
 });
 
-sections.forEach(section => {
-  navObserver.observe(section);
-});
+updateActiveNavLink();
 
 // ===== Typing Animation for Hero (Optional Enhancement) =====
 const heroSubtitle = document.querySelector('.hero-subtitle');

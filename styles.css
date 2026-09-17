@@ -1088,6 +1088,11 @@ body.modal-open {
     grid-column: span 2;
 }
 
+.project-card:nth-child(13) {
+    grid-column: span 6;
+    min-height: 280px;
+}
+
 .project-card:nth-child(8),
 .project-card:nth-child(11) {
     margin-top: 20px;
@@ -1429,6 +1434,7 @@ body.modal-open {
     .project-card:nth-child(10),
     .project-card:nth-child(11),
     .project-card:nth-child(12),
+    .project-card:nth-child(13),
     .project-card.featured {
         grid-column: span 1;
         margin-top: 0;
